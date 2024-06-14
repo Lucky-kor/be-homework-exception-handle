@@ -1,7 +1,9 @@
 package com.springboot.response;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import javax.validation.ConstraintViolation;
 import java.util.List;
@@ -10,21 +12,34 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ErrorResponse {
+    private int status;
+    private String message;
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
 
-    private ErrorResponse(final List<FieldError> fieldErrors,
+
+    private ErrorResponse(final int status, final String message, final List<FieldError> fieldErrors,
                           final List<ConstraintViolationError> violationErrors) {
+        this.status = status;
+        this.message = message;
         this.fieldErrors = fieldErrors;
         this.violationErrors = violationErrors;
     }
 
     public static ErrorResponse of(BindingResult bindingResult) {
-        return new ErrorResponse(FieldError.of(bindingResult), null);
+        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(),  null, FieldError.of(bindingResult), null);
     }
 
     public static ErrorResponse of(Set<ConstraintViolation<?>> violations) {
-        return new ErrorResponse(null, ConstraintViolationError.of(violations));
+        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), null, null, ConstraintViolationError.of(violations));
+    }
+
+    public static ErrorResponse of(int status, String message){
+        return new ErrorResponse(status, message, null,null);
+    }
+
+    public static ErrorResponse of(HttpStatus httpStatus){
+        return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase(), null,null);
     }
 
     @Getter
@@ -75,4 +90,6 @@ public class ErrorResponse {
                     )).collect(Collectors.toList());
         }
     }
+
+
 }
