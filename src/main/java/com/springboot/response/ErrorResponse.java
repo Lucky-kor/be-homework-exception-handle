@@ -1,7 +1,12 @@
 package com.springboot.response;
 
+import com.springboot.exception.BusinessLogicException;
+import com.springboot.exception.ExceptionCode;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import javax.validation.ConstraintViolation;
 import java.util.List;
@@ -10,13 +15,21 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ErrorResponse {
+    private Integer status;
+    private String message;
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
 
-    private ErrorResponse(final List<FieldError> fieldErrors,
+    private ErrorResponse(
+                          final List<FieldError> fieldErrors,
                           final List<ConstraintViolationError> violationErrors) {
         this.fieldErrors = fieldErrors;
         this.violationErrors = violationErrors;
+    }
+
+    public ErrorResponse(Integer status, String message) {
+        this.status = status;
+        this.message = message;
     }
 
     public static ErrorResponse of(BindingResult bindingResult) {
@@ -24,7 +37,26 @@ public class ErrorResponse {
     }
 
     public static ErrorResponse of(Set<ConstraintViolation<?>> violations) {
-        return new ErrorResponse(null, ConstraintViolationError.of(violations));
+        return new ErrorResponse(null,ConstraintViolationError.of(violations));
+    }
+
+    public static ErrorResponse of(ExceptionCode exceptionCode) {
+        return new ErrorResponse
+                (exceptionCode.getStatus(),exceptionCode.getMessage());
+    }
+
+    public static ErrorResponse of(HttpRequestMethodNotSupportedException e) {
+        return new ErrorResponse
+                (HttpStatus.METHOD_NOT_ALLOWED.value(), HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase());
+    }
+
+    public static ErrorResponse of(NullPointerException e) {
+        return new ErrorResponse
+                (HttpStatus.INTERNAL_SERVER_ERROR.value(),HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+    }
+
+    public static ErrorResponse of(HttpStatus httpStatus) {
+        return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase());
     }
 
     @Getter
