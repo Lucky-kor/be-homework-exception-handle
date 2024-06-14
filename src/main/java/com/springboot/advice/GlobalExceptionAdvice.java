@@ -4,6 +4,7 @@ import com.springboot.exception.BusinessLogicException;
 import com.springboot.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -35,13 +36,37 @@ public class GlobalExceptionAdvice {
     public ResponseEntity handleBusinessLogicException(BusinessLogicException e) {
         System.out.println(e.getExceptionCode().getStatus());
         System.out.println(e.getMessage());
+        ErrorResponse response = ErrorResponse.of(e);
 
         // TODO GlobalExceptionAdvice 기능 추가 1
-        return new ResponseEntity<>(HttpStatus.valueOf(e.getExceptionCode()
+        return new ResponseEntity<>(response,HttpStatus.valueOf(e.getExceptionCode()
                 .getStatus()));
     }
 
+
     // TODO GlobalExceptionAdvice 기능 추가 2
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+//    public ErrorResponse handleHttpRequestMethodNotSupportedException(
+//            HttpRequestMethodNotSupportedException e){
+//         final ErrorResponse response = ErrorResponse.of(e);
+//
+//         return response;
+//    }
+    @ExceptionHandler
+    public ResponseEntity handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException e){
+        final ErrorResponse response = ErrorResponse.of(HttpStatus.METHOD_NOT_ALLOWED);
+
+        return new ResponseEntity<>(response,HttpStatus.valueOf(HttpStatus.METHOD_NOT_ALLOWED.value()));
+    }
 
     // TODO GlobalExceptionAdvice 기능 추가 3
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleException(NullPointerException e){
+        final ErrorResponse response = ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return response;
+    }
 }
