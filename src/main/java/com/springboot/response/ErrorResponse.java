@@ -1,7 +1,10 @@
 package com.springboot.response;
 
+import com.springboot.exception.BusinessLogicException;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import javax.validation.ConstraintViolation;
 import java.util.List;
@@ -10,13 +13,21 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ErrorResponse {
+    private Integer status;
+    private String message;
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
+
 
     private ErrorResponse(final List<FieldError> fieldErrors,
                           final List<ConstraintViolationError> violationErrors) {
         this.fieldErrors = fieldErrors;
         this.violationErrors = violationErrors;
+    }
+
+    public ErrorResponse(Integer status, String message) {
+        this.status = status;
+        this.message = message;
     }
 
     public static ErrorResponse of(BindingResult bindingResult) {
@@ -25,6 +36,19 @@ public class ErrorResponse {
 
     public static ErrorResponse of(Set<ConstraintViolation<?>> violations) {
         return new ErrorResponse(null, ConstraintViolationError.of(violations));
+    }
+    public static ErrorResponse of(BusinessLogicException e){
+        return new ErrorResponse(e.getExceptionCode().getStatus(), e.getMessage());
+    }
+
+    public static ErrorResponse of(HttpRequestMethodNotSupportedException e){
+        HttpStatus currentStatus = HttpStatus.METHOD_NOT_ALLOWED;
+        return new ErrorResponse(currentStatus.value(), currentStatus.getReasonPhrase());
+    }
+
+    public static ErrorResponse of(NullPointerException e){
+        HttpStatus currentStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        return new ErrorResponse(currentStatus.value(), currentStatus.getReasonPhrase());
     }
 
     @Getter
