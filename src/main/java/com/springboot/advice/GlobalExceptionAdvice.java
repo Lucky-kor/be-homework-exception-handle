@@ -1,9 +1,9 @@
 package com.springboot.advice;
-
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -33,15 +33,22 @@ public class GlobalExceptionAdvice {
 
     @ExceptionHandler
     public ResponseEntity handleBusinessLogicException(BusinessLogicException e) {
-        System.out.println(e.getExceptionCode().getStatus());
-        System.out.println(e.getMessage());
-
-        // TODO GlobalExceptionAdvice 기능 추가 1
-        return new ResponseEntity<>(HttpStatus.valueOf(e.getExceptionCode()
-                .getStatus()));
+        ErrorResponse response = ErrorResponse.of(e);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(e.getExceptionCode().getStatus()));
+    }
+    // TODO GlobalExceptionAdvice 기능 추가 2
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ErrorResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e){
+        ErrorResponse response = ErrorResponse.of(e);
+       return response;
+    }
+    // TODO GlobalExceptionAdvice 기능 추가 3
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleNullPointerException(NullPointerException e){
+        ErrorResponse response = ErrorResponse.of(e);
+        return response;
     }
 
-    // TODO GlobalExceptionAdvice 기능 추가 2
-
-    // TODO GlobalExceptionAdvice 기능 추가 3
 }
