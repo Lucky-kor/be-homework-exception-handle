@@ -9,7 +9,9 @@ import com.springboot.member.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -25,7 +27,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/v10/members")
 @Validated
-@Slf4j
 public class MemberController {
     private final MemberService memberService;
     private final MemberMapper mapper;
@@ -56,6 +57,7 @@ public class MemberController {
 
         return new ResponseEntity<>(mapper.memberToMemberResponseDto(response),
                 HttpStatus.OK);
+
     }
 
     @GetMapping("/{member-id}")
@@ -81,4 +83,6 @@ public class MemberController {
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+
 }
